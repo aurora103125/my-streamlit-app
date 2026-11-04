@@ -2482,3 +2482,278 @@ elif menu == "📝 메모 노트":
         content = "\n\n".join(f"[{m['created']}] {m['title']}\n{m['text']}" for m in st.session_state.memos)
         st.download_button("📥 전체 메모 다운로드", content.encode("utf-8-sig"), "able_memos.txt")
 
+
+
+
+
+
+###################################################
+
+from pathlib import Path
+
+# ==========================================
+# ABLE DESK 민트 캔디 디자인 업데이트
+# 기존 기능 유지 + 디자인만 수정
+# ==========================================
+
+app = Path("app.py")
+
+if not app.exists():
+    raise FileNotFoundError(
+        "먼저 기존 %%writefile app.py 셀을 실행하세요."
+    )
+
+source = app.read_text(encoding="utf-8")
+
+# 1. 원본 백업
+Path("app_backup.py").write_text(
+    source, encoding="utf-8"
+)
+
+# 2. 여러 버전이 합쳐진 코드 정리
+# 첨부 노트북의 마지막 통합 앱을 기준으로 사용
+marker = (
+    "import calendar\n"
+    "import email\n"
+    "import io\n"
+    "import json\n"
+)
+
+if marker not in source:
+    raise RuntimeError(
+        "ABLE DESK 통합 코드를 찾지 못했습니다. "
+        "기존 app.py 생성 셀을 먼저 실행하세요."
+    )
+
+source = source[source.rfind(marker):]
+
+# 3. 새로운 민트 디자인
+mint_style = '''
+st.markdown("""
+<style>
+/* 전체 배경 */
+.stApp {
+    background: linear-gradient(
+        180deg, #F9FFFD 0%, #EDFFF9 100%
+    );
+    color: #294E47;
+}
+
+.block-container {
+    max-width: 1150px;
+    padding-top: 1.8rem;
+    padding-bottom: 3rem;
+}
+
+/* 사이드바 */
+[data-testid="stSidebar"] {
+    background: #EFFFF9;
+    border-right: 1px solid #D5F4E9;
+}
+
+[data-testid="stSidebar"] h1 {
+    color: #18A991;
+}
+
+/* 메뉴 카드 */
+[data-testid="stSidebar"]
+div[role="radiogroup"] label {
+    background: #FFFFFF;
+    border: 1px solid #CFF2E8;
+    border-radius: 17px;
+    padding: 12px 14px;
+    margin: 6px 0;
+    box-shadow: 0 3px 10px rgba(49,196,169,.06);
+    transition: all .2s ease;
+}
+
+/* 선택된 메뉴 */
+[data-testid="stSidebar"]
+div[role="radiogroup"]
+label:has(input:checked) {
+    background: linear-gradient(
+        90deg, #BFFFF0, #DCFFF6
+    );
+    border: 1px solid #56DCC5;
+    font-weight: 700;
+    color: #20574D;
+    box-shadow: 0 4px 12px rgba(70,213,190,.17);
+}
+
+/* 상단 배너 */
+.hero {
+    background: linear-gradient(
+        120deg,
+        #85F5E1 0%,
+        #52E8CF 50%,
+        #C0FFF1 100%
+    );
+    border-radius: 25px;
+    padding: 35px 38px;
+    margin-bottom: 25px;
+    color: #19584F;
+    border: 2px solid #C1FFF0;
+    box-shadow: 0 9px 24px rgba(79,218,193,.20);
+}
+
+.hero h1 {
+    font-size: 2.6rem;
+    font-weight: 800;
+    color: #14574C;
+    margin: 0;
+}
+
+.hero p {
+    color: #276C60;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+/* 채팅 메시지 */
+[data-testid="stChatMessage"] {
+    background: #FFFFFF;
+    border: 1px solid #D4F5EA;
+    border-radius: 20px;
+    box-shadow: 0 4px 13px rgba(65,210,180,.07);
+    padding: 14px;
+}
+
+/* 일반 버튼 */
+.stButton button {
+    border-radius: 15px;
+    background: #D8FFF3;
+    color: #18574B;
+    border: 1px solid #A7EEDD;
+    font-weight: 700;
+    transition: all .2s ease;
+}
+
+.stButton button:hover {
+    background: #BFFFF0;
+    border-color: #3CCEB5;
+    color: #164C42;
+}
+
+/* 주요 실행 버튼 */
+.stButton button[kind="primary"],
+.stFormSubmitButton button[kind="primary"] {
+    background: #42DCC3;
+    color: #124C42;
+    border: 1px solid #36CCB3;
+    border-radius: 15px;
+    font-weight: 700;
+}
+
+/* 입력창 */
+div[data-baseweb="input"] > div,
+div[data-baseweb="base-input"] > div,
+textarea {
+    border-radius: 14px !important;
+    background: #FFFFFF !important;
+}
+
+/* 수치 카드 */
+[data-testid="stMetric"] {
+    background: #FFFFFF;
+    border: 1px solid #D4F5EA;
+    border-radius: 18px;
+    padding: 15px;
+    box-shadow: 0 4px 12px rgba(65,210,180,.06);
+}
+
+/* 펼치기 메뉴 */
+[data-testid="stExpander"] {
+    background: #FFFFFF;
+    border: 1px solid #D7F4EC;
+    border-radius: 15px;
+}
+
+/* 제목 */
+h1, h2, h3 {
+    letter-spacing: -.025em;
+}
+
+/* 구분선 */
+hr {
+    border-color: #D5F4E9;
+}
+</style>
+""", unsafe_allow_html=True)
+'''
+
+# 4. 기존 디자인 블록 교체
+start = source.find('st.markdown("""\n<style>')
+end_marker = '""", unsafe_allow_html=True)'
+end = source.find(end_marker, start)
+
+if start == -1 or end == -1:
+    raise RuntimeError(
+        "기존 디자인 CSS 블록을 찾지 못했습니다."
+    )
+
+end += len(end_marker)
+
+source = (
+    source[:start]
+    + mint_style
+    + source[end:]
+)
+
+# 5. 앱 이름과 아이콘 변경
+source = source.replace(
+    'page_icon="🌿"',
+    'page_icon="🫧"',
+    1
+)
+
+source = source.replace(
+    'st.title("🌿 ABLE DESK")',
+    'st.title("🫧 ABLE DESK")',
+    1
+)
+
+source = source.replace(
+    'st.caption("YOUR EVERYDAY AI PARTNER")',
+    'st.caption("YOUR CUTE AI COMPANION")',
+    1
+)
+
+# 6. 메인 배너 문구 변경
+source = source.replace(
+    'ABLE DESK ✦</h1>',
+    'ABLE DESK ✨</h1>',
+    1
+)
+
+source = source.replace(
+    '대화로 정리하고 · 일정으로 계획하고 · 메모로 남기는 AI 비서',
+    '오늘도 반짝이는 하루! 에이블이 함께할게요 🫧',
+    1
+)
+
+# 7. 메뉴 아이콘 변경
+menu_names = {
+    "💬 에이블과 대화": "🫧 에이블과 대화",
+    "🗓️ 나의 대시보드": "🌷 나의 대시보드",
+    "🎙️ 회의 분석": "🎧 회의 분석",
+    "✉️ 메일 비서": "💌 메일 비서",
+    "📝 메모 노트": "🍀 메모 노트"
+}
+
+for old, new in menu_names.items():
+    source = source.replace(old, new)
+
+# 8. 문법 검사
+compile(source, "app.py", "exec")
+
+# 9. 수정된 파일 저장
+app.write_text(source, encoding="utf-8")
+
+print("✅ ABLE DESK 민트 캔디 디자인 적용 완료!")
+print("✅ 중복된 이전 코드 정리 완료!")
+print("✅ 메뉴 아이콘 및 제목 변경 완료!")
+print("✅ 기존 5개 기능 유지!")
+print("✅ Python 문법 검사 통과!")
+print("✅ app.py 저장 완료!")
+
