@@ -1752,4 +1752,234 @@ with history_tab:
             file_name="able_history.txt"
         )
 
+#####################################
+
+from pathlib import Path
+
+# 기존 app.py 읽기 및 백업
+p = Path("app.py")
+
+if not p.exists():
+    raise FileNotFoundError(
+        "먼저 %%writefile app.py 셀을 실행하세요."
+    )
+
+s = p.read_text(encoding="utf-8")
+
+Path("app_before_design.py").write_text(
+    s, encoding="utf-8"
+)
+
+# 기존 파일에서 최종 통합 앱만 사용
+marker = (
+    "import calendar\n"
+    "import io\n"
+    "import json\n"
+    "import os\n"
+    "import re\n"
+    "import smtplib"
+)
+
+if marker not in s:
+    raise RuntimeError(
+        "통합 앱 코드를 찾지 못했습니다."
+    )
+
+s = s[s.rfind(marker):]
+
+# 페이지 이름과 아이콘
+s = s.replace(
+    'page_title="ABLE | 나의 AI 비서"',
+    'page_title="ABLE DESK | 나의 AI 워크스페이스"'
+)
+
+s = s.replace(
+    'page_icon="🤖"',
+    'page_icon="✨"',
+    1
+)
+
+# 왼쪽 사이드바 메뉴 구성
+old_sidebar = '''st.title("🤖 ABLE")
+    st.caption("나를 위한 스마트 AI 비서")'''
+
+new_sidebar = '''st.title("✨ ABLE DESK")
+    st.caption("MY PERSONAL WORKSPACE")
+    st.divider()
+
+    section = st.radio(
+        "메뉴 선택",
+        [
+            "🏠 대화 라운지",
+            "🎧 보이스 스튜디오",
+            "🗓️ 마이 플래너",
+            "🧩 미팅 노트",
+            "📮 메일 센터",
+            "📚 대화 보관함"
+        ],
+        label_visibility="collapsed",
+        key="able_section"
+    )
+
+    st.divider()'''
+
+if old_sidebar not in s:
+    raise RuntimeError("사이드바 위치를 찾지 못했습니다.")
+
+s = s.replace(old_sidebar, new_sidebar, 1)
+
+# 기존 상단 탭을 제거하고 사이드바와 연결
+old_tabs = '''chat_tab, voice_tab, dash_tab, meeting_tab, mail_tab, history_tab = st.tabs([
+    "💬 AI 채팅",
+    "🎙️ 음성 대화",
+    "📊 업무 대시보드",
+    "📝 회의 분석",
+    "✉️ 메일 비서",
+    "🕘 대화 기록"
+])'''
+
+if old_tabs not in s:
+    raise RuntimeError(
+        "상단 메뉴 코드를 찾지 못했습니다."
+    )
+
+s = s.replace(
+    old_tabs,
+    'st.caption("왼쪽 메뉴에서 기능을 선택하세요.")',
+    1
+)
+
+# 각 기능을 사이드바 메뉴에 연결
+navigation = {
+    "chat_tab": "🏠 대화 라운지",
+    "voice_tab": "🎧 보이스 스튜디오",
+    "dash_tab": "🗓️ 마이 플래너",
+    "meeting_tab": "🧩 미팅 노트",
+    "mail_tab": "📮 메일 센터",
+    "history_tab": "📚 대화 보관함"
+}
+
+for variable, name in navigation.items():
+    before = f"with {variable}:"
+
+    if before not in s:
+        raise RuntimeError(
+            f"{variable} 기능 위치를 찾지 못했습니다."
+        )
+
+    s = s.replace(
+        before,
+        f'if section == "{name}":',
+        1
+    )
+
+# 메인 타이틀 변경
+s = s.replace(
+    "<h1>ABLE ✦</h1>",
+    "<h1>ABLE DESK ✦</h1>"
+)
+
+s = s.replace(
+    "대화 · 음성 · 일정 · 회의록 · 이메일까지 한곳에서",
+    "나만의 AI 작업 공간 · 생각을 정리하고 하루를 계획하세요"
+)
+
+# 각 화면의 제목 변경
+new_titles = {
+    "에이블과 대화하기": "AI와 함께 생각하기",
+    "음성으로 대화하기": "목소리로 시작하기",
+    "나의 업무 대시보드": "오늘의 일정과 할 일",
+    "회의록 분석 및 내 할 일 추출": "회의에서 실행 계획까지",
+    "메일 비서": "스마트 메일 센터",
+    "최근 10턴 대화 기록": "나의 대화 아카이브",
+    "📤 이메일 작성·발송": "✍️ 메일 작성",
+    "📥 받은 메일 요약": "📥 받은 편지함",
+    "#### 📅 달력": "#### 🗓️ 월간 캘린더",
+    "#### ✅ 할 일": "#### ✅ 체크리스트"
+}
+
+for before, after in new_titles.items():
+    s = s.replace(before, after)
+
+# 새로운 색상과 디자인
+style = '''
+st.markdown("""
+<style>
+.stApp {
+    background: #FBFAF7;
+}
+
+.block-container {
+    max-width: 1050px;
+    padding-top: 2.3rem;
+}
+
+[data-testid="stSidebar"] {
+    background: #F0F4EF;
+    border-right: 1px solid #DCE7DC;
+}
+
+.hero {
+    background: linear-gradient(
+        115deg, #205E58, #3D8374
+    ) !important;
+    border-radius: 24px;
+    padding: 35px 36px;
+    box-shadow: 0 8px 25px rgba(20,80,70,.12);
+}
+
+[data-testid="stSidebar"]
+div[role="radiogroup"] label {
+    background: #FFFFFF;
+    border: 1px solid #DCE7DC;
+    border-radius: 12px;
+    padding: 9px 12px;
+    margin-bottom: 5px;
+}
+
+[data-testid="stSidebar"]
+div[role="radiogroup"] label:has(input:checked) {
+    background: #D6EBE2;
+    border-color: #6AA58F;
+    font-weight: 700;
+}
+
+[data-testid="stChatMessage"] {
+    background: white;
+    border-radius: 16px;
+}
+
+.stButton > button {
+    border-radius: 12px;
+}
+</style>
+""", unsafe_allow_html=True)
+'''
+
+needle = (
+    "# =====================================================\n"
+    "# 2. API 설정"
+)
+
+if needle not in s:
+    raise RuntimeError("디자인 삽입 위치를 찾지 못했습니다.")
+
+s = s.replace(
+    needle,
+    style + "\n" + needle,
+    1
+)
+
+# 문법 검사 후 파일 저장
+compile(s, "app.py", "exec")
+
+p.write_text(s, encoding="utf-8")
+
+print("✅ ABLE DESK 인터페이스 수정 완료!")
+print("✅ 왼쪽 세로 메뉴 적용")
+print("✅ 메뉴 이름 및 아이콘 변경")
+print("✅ 세이지 그린 디자인 적용")
+print("✅ 기존 AI 기능 유지")
+print("✅ Python 문법 검사 통과")
+print("📁 app.py 저장 완료")
 
