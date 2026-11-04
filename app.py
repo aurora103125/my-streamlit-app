@@ -277,7 +277,7 @@ def analyze_meeting(text, person):
 # ABLE_HOME_MASCOT_V1
 # 기존 다섯 가지 기능을 유지하는 새 홈 화면
 
-FEATURES = ['🫧 에이블과 대화', '🌷 나의 대시보드', '🎧 회의 분석', '💌 메일 비서', '🍀 메모 노트']
+FEATURES = ['🫧 에이블과 대화', '🌷 나의 대시보드', '🎧 회의 분석', '💌 메일 비서', '🍀 메모 노트', '📍 장소 찾기']
 HOME = "🏡 홈"
 
 if (
@@ -547,6 +547,7 @@ _VIEW_TO_LABEL = {
     "meeting": FEATURES[2],
     "mail": FEATURES[3],
     "memo": FEATURES[4],
+    "place": FEATURES[5],
 }
 
 _requested = st.query_params.get("view")
@@ -559,8 +560,13 @@ menu = st.session_state.active_menu
 
 # 새로운 홈 화면
 if menu == HOME:
+
+    st.markdown(
+        "<style>.able-link-4{grid-column:auto!important;max-width:none!important;width:auto!important}</style>",
+        unsafe_allow_html=True
+    )
     st.markdown('\n<style>\n/* ABLE_HOVER_HOME_V2 */\n\n.able-immersive {\n    position: relative;\n    width: 100%;\n    height: min(82vh, 800px);\n    min-height: 610px;\n    overflow: hidden;\n    border-radius: 32px;\n    background: linear-gradient(\n        135deg, #77F3DF, #35DCC5 50%, #BBFFF2\n    );\n    box-shadow: 0 18px 40px rgba(35,185,160,.18);\n    border: 2px solid #AAFFEC;\n    text-align: center;\n    color: #14574C;\n}\n\n.able-heading {\n    position: absolute;\n    top: 5%;\n    width: 100%;\n    font-weight: 800;\n    font-size: .9rem;\n    letter-spacing: .13em;\n}\n\n.able-ghost-wrap {\n    position: absolute;\n    top: 9%;\n    left: 50%;\n    width: min(36%, 345px);\n    transform: translateX(-50%);\n    animation: ableHover 3.2s ease-in-out infinite;\n    filter: drop-shadow(\n        0 13px 12px rgba(21,111,95,.13)\n    );\n}\n\n.able-ghost-wrap svg {\n    display: block;\n    width: 100%;\n    height: auto;\n}\n\n@keyframes ableHover {\n    0%, 100% {\n        transform: translate(-50%, 0);\n    }\n    50% {\n        transform: translate(-50%, -14px);\n    }\n}\n\n.able-hello {\n    position: absolute;\n    top: 49%;\n    width: 100%;\n    font-size: clamp(1.5rem, 2.8vw, 2.5rem);\n    font-weight: 900;\n}\n\n.able-subtitle {\n    position: absolute;\n    top: 57%;\n    width: 100%;\n    font-size: 1rem;\n    font-weight: 650;\n}\n\n.able-overlay-menu {\n    position: absolute;\n    top: 66%;\n    left: 7%;\n    right: 7%;\n    display: grid;\n    grid-template-columns: repeat(2, minmax(0,1fr));\n    gap: 12px;\n    opacity: 0;\n    transform: translateY(22px);\n    transition: opacity .35s, transform .35s;\n    pointer-events: none;\n}\n\n/* 마우스를 올리면 메뉴 등장 */\n.able-immersive:hover .able-overlay-menu,\n.able-immersive:focus-within .able-overlay-menu {\n    opacity: 1;\n    transform: translateY(0);\n    pointer-events: auto;\n}\n\n.able-hover-link {\n    display: block;\n    text-decoration: none !important;\n    background: rgba(255,255,255,.84);\n    color: #17594D !important;\n    border: 1px solid #E7FFFA;\n    border-radius: 17px;\n    padding: 15px 8px;\n    font-weight: 800;\n    box-shadow: 0 6px 16px rgba(30,140,120,.1);\n    transition: transform .25s,\n                background .25s,\n                box-shadow .25s;\n}\n\n.able-hover-link:hover,\n.able-hover-link:focus {\n    background: #FFFFFF;\n    transform: translateY(-5px) scale(1.025);\n    box-shadow: 0 10px 20px rgba(30,140,120,.2);\n}\n\n.able-link-4 {\n    grid-column: 1 / -1;\n    max-width: 48%;\n    width: 100%;\n    justify-self: center;\n}\n\n.able-guide {\n    position: absolute;\n    bottom: 3%;\n    left: 0;\n    width: 100%;\n    color: #1B6B5C;\n    font-size: .85rem;\n    transition: opacity .3s;\n}\n\n.able-immersive:hover .able-guide {\n    opacity: 0;\n}\n\n/* 모바일에서는 메뉴가 항상 보이도록 */\n@media (hover:none), (max-width:680px) {\n    .able-immersive {\n        height: auto;\n        min-height: 0;\n        padding: 24px 15px;\n        display: flex;\n        flex-direction: column;\n        align-items: center;\n        gap: 12px;\n    }\n\n    .able-heading,\n    .able-ghost-wrap,\n    .able-hello,\n    .able-subtitle,\n    .able-overlay-menu,\n    .able-guide {\n        position: static;\n        width: 100%;\n        transform: none;\n    }\n\n    .able-ghost-wrap {\n        max-width: 260px;\n        animation: none;\n    }\n\n    .able-overlay-menu {\n        display: grid;\n        opacity: 1;\n        pointer-events: auto;\n        grid-template-columns: 1fr;\n        transform: none;\n        gap: 8px;\n    }\n\n    .able-link-4 {\n        grid-column: auto;\n        max-width: none;\n    }\n\n    .able-hello {\n        font-size: 1.7rem;\n    }\n\n    .able-guide {\n        display: none;\n    }\n}\n</style>\n', unsafe_allow_html=True)
-    st.markdown('\n<div class="able-top">\n  <div class="able-brand">✧ ABLE DESK</div>\n  <div class="able-status">● AI COMPANION</div>\n</div>\n<div class="able-immersive">\n  <div class="able-heading">\n    ✦ YOUR PERSONAL AI ASSISTANT ✦\n  </div>\n  <div class="able-ghost-wrap"><svg class="able-float" viewBox="0 0 340 280"\nxmlns="http://www.w3.org/2000/svg">\n<ellipse cx="170" cy="53" rx="122" ry="23"\nfill="none" stroke="#DFFFF9" stroke-width="6"/>\n<ellipse cx="170" cy="247" rx="123" ry="23"\nfill="none" stroke="#DFFFF9" stroke-width="6"/>\n<path d="M102 209 C100 146 115 90 163 85\nC213 80 234 133 239 172 C252 159 269 151\n278 162 C291 181 264 208 242 220 L239 232\nQ213 244 191 229 Q170 244 149 230\nQ121 242 102 228 Z" fill="#FFFFFF"/>\n<ellipse cx="153" cy="163" rx="7" ry="9"\nfill="#36534D"/>\n<path d="M198 162 Q211 149 223 162"\nfill="none" stroke="#36534D" stroke-width="7"\nstroke-linecap="round"/>\n<path d="M171 185 Q189 205 208 185"\nfill="none" stroke="#36534D" stroke-width="7"\nstroke-linecap="round"/>\n<ellipse cx="130" cy="188" rx="17" ry="10"\nfill="#FFB6CA"/>\n<ellipse cx="228" cy="186" rx="13" ry="9"\nfill="#FFB6CA"/>\n<path d="M270 89 l7 15 15 7 -15 7 -7 15\n-7 -15 -15 -7 15 -7z" fill="#F0FFFC"/>\n<circle cx="70" cy="152" r="6" fill="#F0FFFC"/>\n</svg></div>\n  <div class="able-hello">\n    안녕! 나는 에이블 ✨\n  </div>\n  <div class="able-subtitle">\n    마우스를 올려서 원하는 기능을 선택 할 수 있어\n  </div>\n  <div class="able-overlay-menu"><a class="able-hover-link able-link-0" href="?view=chat" target="_self">에이블과 대화 ↗</a><a class="able-hover-link able-link-1" href="?view=dashboard" target="_self">대시보드 ↗</a><a class="able-hover-link able-link-2" href="?view=meeting" target="_self">회의 분석 ↗</a><a class="able-hover-link able-link-3" href="?view=mail" target="_self">메일 분석 ↗</a><a class="able-hover-link able-link-4" href="?view=memo" target="_self">메모 ↗</a></div>\n  <div class="able-guide">\n    ✦ 에이블 위에 마우스를 올려봐 ✦\n  </div>\n</div>\n', unsafe_allow_html=True)
+    st.markdown('\n<div class="able-top">\n  <div class="able-brand">✧ ABLE DESK</div>\n  <div class="able-status">● AI COMPANION</div>\n</div>\n<div class="able-immersive">\n  <div class="able-heading">\n    ✦ YOUR PERSONAL AI ASSISTANT ✦\n  </div>\n  <div class="able-ghost-wrap"><svg class="able-float" viewBox="0 0 340 280"\nxmlns="http://www.w3.org/2000/svg">\n<ellipse cx="170" cy="53" rx="122" ry="23"\nfill="none" stroke="#DFFFF9" stroke-width="6"/>\n<ellipse cx="170" cy="247" rx="123" ry="23"\nfill="none" stroke="#DFFFF9" stroke-width="6"/>\n<path d="M102 209 C100 146 115 90 163 85\nC213 80 234 133 239 172 C252 159 269 151\n278 162 C291 181 264 208 242 220 L239 232\nQ213 244 191 229 Q170 244 149 230\nQ121 242 102 228 Z" fill="#FFFFFF"/>\n<ellipse cx="153" cy="163" rx="7" ry="9"\nfill="#36534D"/>\n<path d="M198 162 Q211 149 223 162"\nfill="none" stroke="#36534D" stroke-width="7"\nstroke-linecap="round"/>\n<path d="M171 185 Q189 205 208 185"\nfill="none" stroke="#36534D" stroke-width="7"\nstroke-linecap="round"/>\n<ellipse cx="130" cy="188" rx="17" ry="10"\nfill="#FFB6CA"/>\n<ellipse cx="228" cy="186" rx="13" ry="9"\nfill="#FFB6CA"/>\n<path d="M270 89 l7 15 15 7 -15 7 -7 15\n-7 -15 -15 -7 15 -7z" fill="#F0FFFC"/>\n<circle cx="70" cy="152" r="6" fill="#F0FFFC"/>\n</svg></div>\n  <div class="able-hello">\n    안녕! 나는 에이블 ✨\n  </div>\n  <div class="able-subtitle">\n    마우스를 올려서 원하는 기능을 선택 할 수 있어\n  </div>\n  <div class="able-overlay-menu"><a class="able-hover-link able-link-0" href="?view=chat" target="_self">에이블과 대화 ↗</a><a class="able-hover-link able-link-1" href="?view=dashboard" target="_self">대시보드 ↗</a><a class="able-hover-link able-link-2" href="?view=meeting" target="_self">회의 분석 ↗</a><a class="able-hover-link able-link-3" href="?view=mail" target="_self">메일 분석 ↗</a><a class="able-hover-link able-link-4" href="?view=memo" target="_self">메모 ↗</a><a class="able-hover-link able-link-5" href="?view=place" target="_self">📍 장소 찾기 ↗</a></div>\n  <div class="able-guide">\n    ✦ 에이블 위에 마우스를 올려봐 ✦\n  </div>\n</div>\n', unsafe_allow_html=True)
 else:
     st.button(
         "← 홈으로 돌아가기",
@@ -818,3 +824,318 @@ elif menu == "🍀 메모 노트":
 
 
 ###################################################
+
+
+# ABLE_PLACE_PATCH_V1
+elif menu == "📍 장소 찾기":
+
+    import requests
+    import pandas as pd
+
+    st.markdown("### 📍 에이블 플레이스")
+    st.caption(
+        "현재 위치 또는 지역명으로 주변 장소를 찾아요 💚"
+    )
+
+    kakao_key = setting("KAKAO_REST_API_KEY")
+
+    if not kakao_key:
+        st.warning(
+            "Streamlit Secrets에 KAKAO_REST_API_KEY를 등록해 주세요."
+        )
+
+    search_mode = st.radio(
+        "검색 기준",
+        ["📝 지역 직접 입력", "📡 현재 위치"],
+        horizontal=True,
+        key="place_mode"
+    )
+
+    lat, lon = None, None
+    place_region = ""
+
+    # 지역 직접 입력
+    if search_mode == "📝 지역 직접 입력":
+
+        place_region = st.text_input(
+            "어느 지역에서 찾을까요?",
+            placeholder="예: 논산역, 강남역, 부산 서면",
+            key="place_region"
+        )
+
+        st.caption(
+            "지역명을 포함해 장소를 검색합니다."
+        )
+
+    # 브라우저 위치 기반 검색
+    else:
+        st.info(
+            "아래 위치 확인 버튼을 누르고 "
+            "브라우저 위치 권한을 허용해 주세요."
+        )
+
+        try:
+            from streamlit_geolocation import streamlit_geolocation
+
+            coords = streamlit_geolocation()
+
+            if (
+                isinstance(coords, dict)
+                and coords.get("latitude") is not None
+                and coords.get("longitude") is not None
+            ):
+                lat = float(coords["latitude"])
+                lon = float(coords["longitude"])
+
+                if (
+                    not -90 <= lat <= 90
+                    or not -180 <= lon <= 180
+                ):
+                    lat, lon = None, None
+
+                else:
+                    st.success("현재 위치 확인 완료! ✅")
+                    st.caption(
+                        f"위치 정확도: 약 "
+                        f"{coords.get('accuracy', '알 수 없음')}m"
+                    )
+
+            else:
+                st.caption(
+                    "위치 확인 버튼을 눌러 주세요."
+                )
+
+        except ImportError:
+            st.error(
+                "streamlit-geolocation 설치가 필요합니다."
+            )
+
+        except Exception as exc:
+            st.warning(
+                f"위치 정보를 불러오지 못했어요: {exc}"
+            )
+
+    # 6. 장소 종류 선택
+    category = st.selectbox(
+        "찾고 싶은 장소",
+        [
+            "☕ 카페",
+            "🍜 음식점",
+            "🏥 병원",
+            "📚 도서관",
+            "🛒 쇼핑",
+            "🔎 직접 입력"
+        ],
+        key="place_category"
+    )
+
+    category_words = {
+        "☕ 카페": "카페",
+        "🍜 음식점": "맛집",
+        "🏥 병원": "병원",
+        "📚 도서관": "도서관",
+        "🛒 쇼핑": "쇼핑"
+    }
+
+    if category == "🔎 직접 입력":
+        keyword = st.text_input(
+            "검색어",
+            placeholder="예: 조용한 카페",
+            key="place_keyword"
+        )
+    else:
+        keyword = category_words[category]
+
+    radius = 2000
+
+    if search_mode == "📡 현재 위치":
+        radius = st.slider(
+            "검색 반경 (m)",
+            min_value=500,
+            max_value=10000,
+            value=2000,
+            step=500,
+            key="place_radius"
+        )
+
+    # 7. 카카오 API 검색
+    if st.button(
+        "🔍 장소 검색",
+        type="primary",
+        use_container_width=True,
+        key="place_search_button"
+    ):
+
+        if not kakao_key:
+            st.error(
+                "카카오 REST API 키를 먼저 등록해 주세요."
+            )
+
+        elif not keyword.strip():
+            st.warning(
+                "검색어를 입력해 주세요."
+            )
+
+        elif (
+            search_mode == "📝 지역 직접 입력"
+            and not place_region.strip()
+        ):
+            st.warning(
+                "지역명을 먼저 입력해 주세요."
+            )
+
+        elif (
+            search_mode == "📡 현재 위치"
+            and (lat is None or lon is None)
+        ):
+            st.warning(
+                "위치 확인 버튼을 누르고 위치 권한을 허용해 주세요."
+            )
+
+        else:
+
+            params = {
+                "query": keyword.strip(),
+                "size": 15
+            }
+
+            if search_mode == "📝 지역 직접 입력":
+                params["query"] = (
+                    f"{place_region.strip()} "
+                    f"{keyword.strip()}"
+                )
+
+            else:
+                params.update({
+                    "x": lon,
+                    "y": lat,
+                    "radius": radius,
+                    "sort": "distance"
+                })
+
+            try:
+                with st.spinner(
+                    "에이블이 장소를 찾는 중이에요..."
+                ):
+
+                    response = requests.get(
+                        "https://dapi.kakao.com/v2/local/search/keyword.json",
+                        headers={
+                            "Authorization": f"KakaoAK {kakao_key}"
+                        },
+                        params=params,
+                        timeout=12
+                    )
+
+                    response.raise_for_status()
+
+                    results = response.json().get(
+                        "documents", []
+                    )
+
+                st.session_state[
+                    "able_place_results"
+                ] = results
+
+                if results:
+                    st.success(
+                        f"장소 {len(results)}개를 찾았어요! 💚"
+                    )
+                else:
+                    st.info(
+                        "검색 결과가 없어요. 다른 검색어를 사용해 보세요."
+                    )
+
+            except requests.HTTPError as exc:
+                st.error(
+                    f"카카오 검색 오류: {exc}. "
+                    "API 키와 권한 설정을 확인해 주세요."
+                )
+
+            except requests.RequestException:
+                st.error(
+                    "검색 서버에 연결할 수 없어요."
+                )
+
+            except ValueError:
+                st.error(
+                    "검색 응답을 읽지 못했어요."
+                )
+
+    # 8. 검색 결과를 지도와 목록으로 표시
+    places = st.session_state.get(
+        "able_place_results", []
+    )
+
+    if places:
+
+        st.markdown("#### 🗺️ 검색된 장소 지도")
+
+        pins = []
+
+        for place in places:
+            try:
+                pins.append({
+                    "lat": float(place["y"]),
+                    "lon": float(place["x"])
+                })
+            except (
+                ValueError,
+                TypeError,
+                KeyError
+            ):
+                continue
+
+        if pins:
+            st.map(
+                pd.DataFrame(pins),
+                latitude="lat",
+                longitude="lon"
+            )
+
+        st.markdown("#### 💚 장소 목록")
+
+        for i, place in enumerate(places):
+
+            with st.container(border=True):
+
+                st.markdown(
+                    f"**{i+1}. "
+                    f"{place.get('place_name', '이름 없음')}**"
+                )
+
+                address = (
+                    place.get("road_address_name")
+                    or place.get("address_name")
+                    or "주소 정보 없음"
+                )
+
+                st.write("📍 " + address)
+
+                if place.get("phone"):
+                    st.caption(
+                        "☎ " + place["phone"]
+                    )
+
+                if place.get("distance"):
+                    st.caption(
+                        "현재 위치에서 약 "
+                        + place["distance"]
+                        + "m (직선거리 기준)"
+                    )
+
+                url = place.get("place_url", "")
+
+                if (
+                    url.startswith("https://")
+                    or url.startswith("http://")
+                ):
+                    st.link_button(
+                        "카카오맵에서 자세히 보기 ↗",
+                        url
+                    )
+
+    st.caption(
+        "현재 위치는 장소 검색 요청에만 사용하며 "
+        "별도로 영구 저장하지 않습니다."
+    )
