@@ -453,7 +453,42 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 with st.sidebar:
-    st.markdown('<div class="able-sidebar-hero">\n<div class="able-sidebar-mini">MY CUTE AI ASSISTANT</div>\n<div class="able-sidebar-title">ABLE DESK</div>\n<div class="able-sidebar-sub">오늘도 에이블이 함께할게 ✨</div>\n\n<svg class="able-sidebar-ghost" viewBox="0 0 340 280"\nxmlns="http://www.w3.org/2000/svg">\n<ellipse cx="170" cy="53" rx="122" ry="23"\nfill="none" stroke="#FFFFFF" stroke-width="6"/>\n<ellipse cx="170" cy="247" rx="123" ry="23"\nfill="none" stroke="#FFFFFF" stroke-width="6"/>\n\n<path d="M102 209 C100 146 115 90 163 85\nC213 80 234 133 239 172 C252 159 269 151\n278 162 C291 181 264 208 242 220 L239 232\nQ213 244 191 229 Q170 244 149 230\nQ121 242 102 228 Z" fill="#FFFFFF"/>\n\n<ellipse cx="153" cy="163" rx="7" ry="9" fill="#36534D"/>\n<path d="M198 162 Q211 149 223 162"\nfill="none" stroke="#36534D" stroke-width="7"\nstroke-linecap="round"/>\n<path d="M171 185 Q189 205 208 185"\nfill="none" stroke="#36534D" stroke-width="7"\nstroke-linecap="round"/>\n\n<ellipse cx="130" cy="188" rx="17" ry="10" fill="#FFB6CA"/>\n<ellipse cx="228" cy="186" rx="13" ry="9" fill="#FFB6CA"/>\n\n<path d="M270 89 l7 15 15 7 -15 7 -7 15 -7 -15 -15 -7 15 -7z"\nfill="#F7FFFD"/>\n<circle cx="70" cy="152" r="6" fill="#F7FFFD"/>\n</svg>\n</div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="able-sidebar-hero">
+        <div class="able-sidebar-mini">MY CUTE AI ASSISTANT</div>
+        <div class="able-sidebar-title">ABLE DESK</div>
+        <div class="able-sidebar-sub">오늘도 에이블이 함께할게 ✨</div>
+
+        <svg class="able-sidebar-ghost" viewBox="0 0 340 280"
+             xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="170" cy="53" rx="122" ry="23"
+                     fill="none" stroke="#FFFFFF" stroke-width="6"/>
+            <ellipse cx="170" cy="247" rx="123" ry="23"
+                     fill="none" stroke="#FFFFFF" stroke-width="6"/>
+
+            <path d="M102 209 C100 146 115 90 163 85
+            C213 80 234 133 239 172 C252 159 269 151
+            278 162 C291 181 264 208 242 220 L239 232
+            Q213 244 191 229 Q170 244 149 230
+            Q121 242 102 228 Z" fill="#FFFFFF"/>
+
+            <ellipse cx="153" cy="163" rx="7" ry="9" fill="#36534D"/>
+            <path d="M198 162 Q211 149 223 162"
+                  fill="none" stroke="#36534D" stroke-width="7"
+                  stroke-linecap="round"/>
+            <path d="M171 185 Q189 205 208 185"
+                  fill="none" stroke="#36534D" stroke-width="7"
+                  stroke-linecap="round"/>
+
+            <ellipse cx="130" cy="188" rx="17" ry="10" fill="#FFB6CA"/>
+            <ellipse cx="228" cy="186" rx="13" ry="9" fill="#FFB6CA"/>
+
+            <path d="M270 89 l7 15 15 7 -15 7 -7 15 -7 -15 -15 -7 15 -7z"
+                  fill="#F7FFFD"/>
+            <circle cx="70" cy="152" r="6" fill="#F7FFFD"/>
+        </svg>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.button(
         "🏡 첫 화면",
@@ -527,7 +562,7 @@ menu = st.session_state.active_menu
 if menu == HOME:
 
     st.markdown(
-        "<style>.able-link-4,.able-link-5{grid-column:auto!important;max-width:none!important;width:100%!important;justify-self:stretch!important}</style>",
+        "<style>.able-link-4{grid-column:auto!important;max-width:none!important;width:auto!important}</style>",
         unsafe_allow_html=True
     )
     st.markdown('\n<style>\n/* ABLE_HOVER_HOME_V2 */\n\n.able-immersive {\n    position: relative;\n    width: 100%;\n    height: min(82vh, 800px);\n    min-height: 610px;\n    overflow: hidden;\n    border-radius: 32px;\n    background: linear-gradient(\n        135deg, #77F3DF, #35DCC5 50%, #BBFFF2\n    );\n    box-shadow: 0 18px 40px rgba(35,185,160,.18);\n    border: 2px solid #AAFFEC;\n    text-align: center;\n    color: #14574C;\n}\n\n.able-heading {\n    position: absolute;\n    top: 5%;\n    width: 100%;\n    font-weight: 800;\n    font-size: .9rem;\n    letter-spacing: .13em;\n}\n\n.able-ghost-wrap {\n    position: absolute;\n    top: 9%;\n    left: 50%;\n    width: min(36%, 345px);\n    transform: translateX(-50%);\n    animation: ableHover 3.2s ease-in-out infinite;\n    filter: drop-shadow(\n        0 13px 12px rgba(21,111,95,.13)\n    );\n}\n\n.able-ghost-wrap svg {\n    display: block;\n    width: 100%;\n    height: auto;\n}\n\n@keyframes ableHover {\n    0%, 100% {\n        transform: translate(-50%, 0);\n    }\n    50% {\n        transform: translate(-50%, -14px);\n    }\n}\n\n.able-hello {\n    position: absolute;\n    top: 49%;\n    width: 100%;\n    font-size: clamp(1.5rem, 2.8vw, 2.5rem);\n    font-weight: 900;\n}\n\n.able-subtitle {\n    position: absolute;\n    top: 57%;\n    width: 100%;\n    font-size: 1rem;\n    font-weight: 650;\n}\n\n.able-overlay-menu {\n    position: absolute;\n    top: 66%;\n    left: 7%;\n    right: 7%;\n    display: grid;\n    grid-template-columns: repeat(2, minmax(0,1fr));\n    gap: 12px;\n    opacity: 0;\n    transform: translateY(22px);\n    transition: opacity .35s, transform .35s;\n    pointer-events: none;\n}\n\n/* 마우스를 올리면 메뉴 등장 */\n.able-immersive:hover .able-overlay-menu,\n.able-immersive:focus-within .able-overlay-menu {\n    opacity: 1;\n    transform: translateY(0);\n    pointer-events: auto;\n}\n\n.able-hover-link {\n    display: block;\n    text-decoration: none !important;\n    background: rgba(255,255,255,.84);\n    color: #17594D !important;\n    border: 1px solid #E7FFFA;\n    border-radius: 17px;\n    padding: 15px 8px;\n    font-weight: 800;\n    box-shadow: 0 6px 16px rgba(30,140,120,.1);\n    transition: transform .25s,\n                background .25s,\n                box-shadow .25s;\n}\n\n.able-hover-link:hover,\n.able-hover-link:focus {\n    background: #FFFFFF;\n    transform: translateY(-5px) scale(1.025);\n    box-shadow: 0 10px 20px rgba(30,140,120,.2);\n}\n\n.able-link-4 {\n    grid-column: 1 / -1;\n    max-width: 48%;\n    width: 100%;\n    justify-self: center;\n}\n\n.able-guide {\n    position: absolute;\n    bottom: 3%;\n    left: 0;\n    width: 100%;\n    color: #1B6B5C;\n    font-size: .85rem;\n    transition: opacity .3s;\n}\n\n.able-immersive:hover .able-guide {\n    opacity: 0;\n}\n\n/* 모바일에서는 메뉴가 항상 보이도록 */\n@media (hover:none), (max-width:680px) {\n    .able-immersive {\n        height: auto;\n        min-height: 0;\n        padding: 24px 15px;\n        display: flex;\n        flex-direction: column;\n        align-items: center;\n        gap: 12px;\n    }\n\n    .able-heading,\n    .able-ghost-wrap,\n    .able-hello,\n    .able-subtitle,\n    .able-overlay-menu,\n    .able-guide {\n        position: static;\n        width: 100%;\n        transform: none;\n    }\n\n    .able-ghost-wrap {\n        max-width: 260px;\n        animation: none;\n    }\n\n    .able-overlay-menu {\n        display: grid;\n        opacity: 1;\n        pointer-events: auto;\n        grid-template-columns: 1fr;\n        transform: none;\n        gap: 8px;\n    }\n\n    .able-link-4 {\n        grid-column: auto;\n        max-width: none;\n    }\n\n    .able-hello {\n        font-size: 1.7rem;\n    }\n\n    .able-guide {\n        display: none;\n    }\n}\n</style>\n', unsafe_allow_html=True)
