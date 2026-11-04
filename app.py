@@ -444,102 +444,48 @@ menu = st.session_state.active_menu
 # 새로운 홈 화면
 if menu == HOME:
 
-    st.markdown("""
-    <div class="able-top">
-        <div class="able-brand">✧ ABLE DESK</div>
-        <div class="able-status">● AI COMPANION</div>
-    </div>
 
-    <div class="able-stage">
+    ghost_html = """<div class="able-top">
+<div class="able-brand">✧ ABLE DESK</div>
+<div class="able-status">● AI COMPANION</div>
+</div>
+<div class="able-stage">
+<div class="eyebrow">✦ YOUR PERSONAL AI ASSISTANT ✦</div>
+<svg class="able-float" viewBox="0 0 340 280"
+xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="170" cy="53" rx="122" ry="23"
+fill="none" stroke="#DFFFF9" stroke-width="6"/>
+<ellipse cx="170" cy="247" rx="123" ry="23"
+fill="none" stroke="#DFFFF9" stroke-width="6"/>
+<path d="M102 209 C100 146 115 90 163 85
+C213 80 234 133 239 172 C252 159 269 151
+278 162 C291 181 264 208 242 220 L239 232
+Q213 244 191 229 Q170 244 149 230
+Q121 242 102 228 Z" fill="#FFFFFF"/>
+<ellipse cx="153" cy="163" rx="7" ry="9"
+fill="#36534D"/>
+<path d="M198 162 Q211 149 223 162"
+fill="none" stroke="#36534D" stroke-width="7"
+stroke-linecap="round"/>
+<path d="M171 185 Q189 205 208 185"
+fill="none" stroke="#36534D" stroke-width="7"
+stroke-linecap="round"/>
+<ellipse cx="130" cy="188" rx="17" ry="10"
+fill="#FFB6CA"/>
+<ellipse cx="228" cy="186" rx="13" ry="9"
+fill="#FFB6CA"/>
+<path d="M270 89 l7 15 15 7 -15 7 -7 15
+-7 -15 -15 -7 15 -7z" fill="#F0FFFC"/>
+<circle cx="70" cy="152" r="6" fill="#F0FFFC"/>
+</svg>
+<h1>안녕! 나는 에이블이야 ✨</h1>
+<p>하고 싶은 일을 말해줘. 내가 같이 정리해줄게!</p>
+</div>
+<div class="able-card-label">
+오늘은 무엇을 도와줄까? 💚
+</div>"""
+    st.markdown(ghost_html, unsafe_allow_html=True)
 
-        <div class="eyebrow">
-            ✦ YOUR PERSONAL AI ASSISTANT ✦
-        </div>
-
-        <svg class="able-float"
-             viewBox="0 0 340 280"
-             xmlns="http://www.w3.org/2000/svg"
-             role="img"
-             aria-label="공중에 떠 있는 에이블 캐릭터">
-
-            <!-- 네온 링 -->
-            <ellipse cx="170" cy="53"
-                     rx="122" ry="23"
-                     fill="none"
-                     stroke="#DFFFF9"
-                     stroke-width="6"/>
-
-            <ellipse cx="170" cy="247"
-                     rx="123" ry="23"
-                     fill="none"
-                     stroke="#DFFFF9"
-                     stroke-width="6"/>
-
-            <!-- 캐릭터 몸통 -->
-            <path d="
-                M102 209
-                C100 146 115 90 163 85
-                C213 80 234 133 239 172
-                C252 159 269 151 278 162
-                C291 181 264 208 242 220
-                L239 232
-                Q213 244 191 229
-                Q170 244 149 230
-                Q121 242 102 228 Z"
-                fill="#FFFFFF"/>
-
-            <!-- 눈 -->
-            <ellipse cx="153" cy="163"
-                     rx="7" ry="9"
-                     fill="#36534D"/>
-
-            <path d="M198 162 Q211 149 223 162"
-                  fill="none"
-                  stroke="#36534D"
-                  stroke-width="7"
-                  stroke-linecap="round"/>
-
-            <!-- 웃는 입 -->
-            <path d="M171 185 Q189 205 208 185"
-                  fill="none"
-                  stroke="#36534D"
-                  stroke-width="7"
-                  stroke-linecap="round"/>
-
-            <!-- 볼터치 -->
-            <ellipse cx="130" cy="188"
-                     rx="17" ry="10"
-                     fill="#FFB6CA"/>
-
-            <ellipse cx="228" cy="186"
-                     rx="13" ry="9"
-                     fill="#FFB6CA"/>
-
-            <!-- 반짝임 -->
-            <path d="
-                M270 89 l7 15 15 7
-                -15 7 -7 15 -7 -15
-                -15 -7 15 -7z"
-                fill="#F0FFFC"/>
-
-            <circle cx="70" cy="152"
-                    r="6" fill="#F0FFFC"/>
-
-        </svg>
-
-        <h1>안녕! 나는 에이블이야 ✨</h1>
-
-        <p>
-            하고 싶은 일을 말해줘.
-            내가 같이 정리해줄게!
-        </p>
-
-    </div>
-
-    <div class="able-card-label">
-        오늘은 무엇을 도와줄까? 💚
-    </div>
-    """, unsafe_allow_html=True)
 
     # 실제 클릭 가능한 5개 기능 카드
     left, right = st.columns(2, gap="small")
