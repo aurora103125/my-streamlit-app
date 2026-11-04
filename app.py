@@ -826,431 +826,316 @@ elif menu == "🍀 메모 노트":
 ###################################################
 
 
-
-# ABLE_OSM_PLACE_V1
+# ABLE_PLACE_PATCH_V1
 elif menu == "📍 장소 찾기":
 
-    import math
-    import re
-    from urllib.parse import quote
-
     import requests
-    import folium
-    import streamlit.components.v1 as components
+    import pandas as pd
 
-    st.markdown("## 📍 에이블 플레이스")
-    st.caption("에이블과 함께 주변 장소를 찾아봐요 💚")
-
-    # 별도의 API 키가 필요하지 않은 공개 서비스
-    PHOTON_URL = "https://photon.komoot.io/api/"
-    OVERPASS_URL = "https://overpass-api.de/api/interpreter"
-
-    HEADERS = {
-        "User-Agent": (
-            "ABLEDeskStudentProject/1.0 "
-            "(Streamlit educational place finder)"
-        )
-    }
-
-    # 검색 결과 캐시: 반복 호출 감소
-    @st.cache_data(ttl=86400, show_spinner=False)
-    def find_region(region):
-        response = requests.get(
-            PHOTON_URL,
-            params={
-                "q": region,
-                "limit": 5,
-                "lang": "ko"
-            },
-            headers=HEADERS,
-            timeout=15
-        )
-        response.raise_for_status()
-
-        features = response.json().get("features", [])
-
-        if not features:
-            return None
-
-        # 한국에 있는 결과 우선
-        korean = [
-            f for f in features
-            if f.get("properties", {}).get("countrycode", "").lower() == "kr"
-        ]
-
-        chosen = korean[0] if korean else features[0]
-
-        lon, lat = chosen["geometry"]["coordinates"]
-
-        return float(lat), float(lon)
-
-
-    @st.cache_data(ttl=3600, show_spinner=False)
-    def search_osm_places(lat, lon, radius, kind, keyword):
-
-        filters = {
-            "☕ 카페": '["amenity"="cafe"]',
-            "🍜 음식점": '["amenity"~"^(restaurant|fast_food|food_court)$"]',
-            "🏥 병원": '["amenity"~"^(hospital|clinic|doctors)$"]',
-            "📚 도서관": '["amenity"="library"]',
-            "💊 약국": '["amenity"="pharmacy"]',
-            "🛒 편의점": '["shop"~"^(convenience|supermarket)$"]'
-        }
-
-        if kind == "🔎 직접 검색":
-            safe_keyword = re.escape(keyword[:40])
-            safe_keyword = safe_keyword.replace('"', "")
-
-            if not safe_keyword:
-                return []
-
-            osm_filter = (
-                '["name"~"' + safe_keyword + '",i]'
-            )
-        else:
-            osm_filter = filters[kind]
-
-        query = (
-            "[out:json][timeout:25];"
-            f"nwr(around:{radius},{lat},{lon})"
-            f"{osm_filter};"
-            "out center 35;"
-        )
-
-        response = requests.post(
-            OVERPASS_URL,
-            data={"data": query},
-            headers=HEADERS,
-            timeout=40
-        )
-        response.raise_for_status()
-
-        elements = response.json().get("elements", [])
-        results = []
-
-        for element in elements:
-            tags = element.get("tags", {})
-            center = element.get("center", element)
-
-            plat = center.get("lat")
-            plon = center.get("lon")
-
-            if plat is None or plon is None:
-                continue
-
-            # 이름 없는 장소 제외
-            name = (
-                tags.get("name:ko")
-                or tags.get("name")
-                or tags.get("brand")
-            )
-
-            if not name:
-                continue
-
-            address_parts = [
-                tags.get("addr:city"),
-                tags.get("addr:street"),
-                tags.get("addr:housenumber")
-            ]
-
-            address = " ".join(
-                x for x in address_parts if x
-            ) or "상세 주소 미등록"
-
-            # 직선거리 계산
-            lat1 = math.radians(lat)
-            lat2 = math.radians(float(plat))
-            dlat = lat2 - lat1
-            dlon = math.radians(float(plon) - lon)
-
-            a = (
-                math.sin(dlat / 2) ** 2
-                + math.cos(lat1)
-                * math.cos(lat2)
-                * math.sin(dlon / 2) ** 2
-            )
-
-            distance = (
-                6371 * 2 * math.atan2(
-                    math.sqrt(a),
-                    math.sqrt(max(0, 1 - a))
-                )
-            )
-
-            results.append({
-                "name": name,
-                "lat": float(plat),
-                "lon": float(plon),
-                "address": address,
-                "distance": round(distance, 2),
-                "phone": tags.get("phone", ""),
-                "website": tags.get("website", "")
-            })
-
-        results.sort(key=lambda x: x["distance"])
-
-        return results[:25]
-
-
-    # 검색 방식
-    mode = st.radio(
-        "어디에서 찾을까요?",
-        ["📝 지역 직접 입력", "📡 현재 위치"],
-        horizontal=True,
-        key="osm_mode"
+    st.markdown("### 📍 에이블 플레이스")
+    st.caption(
+        "현재 위치 또는 지역명으로 주변 장소를 찾아요 💚"
     )
 
-    lat = None
-    lon = None
-    region = ""
+    kakao_key = setting("KAKAO_REST_API_KEY")
 
-    if mode == "📝 지역 직접 입력":
-        region = st.text_input(
-            "지역명 입력",
-            placeholder="예: 논산역, 서울 강남역, 부산 서면",
-            key="osm_region"
+    if not kakao_key:
+        st.warning(
+            "Streamlit Secrets에 KAKAO_REST_API_KEY를 등록해 주세요."
         )
 
+    search_mode = st.radio(
+        "검색 기준",
+        ["📝 지역 직접 입력", "📡 현재 위치"],
+        horizontal=True,
+        key="place_mode"
+    )
+
+    lat, lon = None, None
+    place_region = ""
+
+    # 지역 직접 입력
+    if search_mode == "📝 지역 직접 입력":
+
+        place_region = st.text_input(
+            "어느 지역에서 찾을까요?",
+            placeholder="예: 논산역, 강남역, 부산 서면",
+            key="place_region"
+        )
+
+        st.caption(
+            "지역명을 포함해 장소를 검색합니다."
+        )
+
+    # 브라우저 위치 기반 검색
     else:
         st.info(
-            "위치 사용을 허용하면 내 주변 장소를 검색할 수 있어요."
+            "아래 위치 확인 버튼을 누르고 "
+            "브라우저 위치 권한을 허용해 주세요."
         )
 
         try:
             from streamlit_geolocation import streamlit_geolocation
 
-            location = streamlit_geolocation()
+            coords = streamlit_geolocation()
 
             if (
-                isinstance(location, dict)
-                and location.get("latitude") is not None
-                and location.get("longitude") is not None
+                isinstance(coords, dict)
+                and coords.get("latitude") is not None
+                and coords.get("longitude") is not None
             ):
-                lat = float(location["latitude"])
-                lon = float(location["longitude"])
+                lat = float(coords["latitude"])
+                lon = float(coords["longitude"])
 
-                if -90 <= lat <= 90 and -180 <= lon <= 180:
-                    st.success("현재 위치를 확인했어요! 📍")
+                if (
+                    not -90 <= lat <= 90
+                    or not -180 <= lon <= 180
+                ):
+                    lat, lon = None, None
+
                 else:
-                    lat = lon = None
+                    st.success("현재 위치 확인 완료! ✅")
+                    st.caption(
+                        f"위치 정확도: 약 "
+                        f"{coords.get('accuracy', '알 수 없음')}m"
+                    )
+
+            else:
+                st.caption(
+                    "위치 확인 버튼을 눌러 주세요."
+                )
 
         except ImportError:
             st.error(
-                "streamlit-geolocation 라이브러리가 필요해요."
+                "streamlit-geolocation 설치가 필요합니다."
             )
 
         except Exception as exc:
-            st.warning(f"위치 확인 실패: {exc}")
+            st.warning(
+                f"위치 정보를 불러오지 못했어요: {exc}"
+            )
 
-
+    # 6. 장소 종류 선택
     category = st.selectbox(
-        "어떤 장소를 찾을까요?",
+        "찾고 싶은 장소",
         [
             "☕ 카페",
             "🍜 음식점",
             "🏥 병원",
             "📚 도서관",
-            "💊 약국",
-            "🛒 편의점",
-            "🔎 직접 검색"
+            "🛒 쇼핑",
+            "🔎 직접 입력"
         ],
-        key="osm_category"
+        key="place_category"
     )
 
-    keyword = ""
+    category_words = {
+        "☕ 카페": "카페",
+        "🍜 음식점": "맛집",
+        "🏥 병원": "병원",
+        "📚 도서관": "도서관",
+        "🛒 쇼핑": "쇼핑"
+    }
 
-    if category == "🔎 직접 검색":
+    if category == "🔎 직접 입력":
         keyword = st.text_input(
-            "찾고 싶은 장소 이름",
-            placeholder="예: 스타벅스",
-            key="osm_keyword"
+            "검색어",
+            placeholder="예: 조용한 카페",
+            key="place_keyword"
+        )
+    else:
+        keyword = category_words[category]
+
+    radius = 2000
+
+    if search_mode == "📡 현재 위치":
+        radius = st.slider(
+            "검색 반경 (m)",
+            min_value=500,
+            max_value=10000,
+            value=2000,
+            step=500,
+            key="place_radius"
         )
 
-    radius = st.slider(
-        "검색 반경",
-        min_value=500,
-        max_value=5000,
-        value=1500,
-        step=500,
-        format="%dm",
-        key="osm_radius"
-    )
-
+    # 7. 카카오 API 검색
     if st.button(
-        "🔍 주변 장소 찾기",
+        "🔍 장소 검색",
         type="primary",
         use_container_width=True,
-        key="osm_search"
+        key="place_search_button"
     ):
 
-        if mode == "📝 지역 직접 입력":
-            if not region.strip():
-                st.warning("지역명을 입력해 주세요.")
-                st.stop()
+        if not kakao_key:
+            st.error(
+                "카카오 REST API 키를 먼저 등록해 주세요."
+            )
 
-            try:
-                with st.spinner("지역 위치 확인 중..."):
-                    center = find_region(region.strip())
+        elif not keyword.strip():
+            st.warning(
+                "검색어를 입력해 주세요."
+            )
 
-                if center is None:
-                    st.error("지역을 찾지 못했어요.")
-                    st.stop()
+        elif (
+            search_mode == "📝 지역 직접 입력"
+            and not place_region.strip()
+        ):
+            st.warning(
+                "지역명을 먼저 입력해 주세요."
+            )
 
-                lat, lon = center
+        elif (
+            search_mode == "📡 현재 위치"
+            and (lat is None or lon is None)
+        ):
+            st.warning(
+                "위치 확인 버튼을 누르고 위치 권한을 허용해 주세요."
+            )
 
-            except Exception as exc:
-                st.error(f"지역 검색 실패: {exc}")
-                st.stop()
+        else:
 
-        if lat is None or lon is None:
-            st.warning("현재 위치를 확인해 주세요.")
-            st.stop()
-
-        if category == "🔎 직접 검색" and not keyword.strip():
-            st.warning("검색어를 입력해 주세요.")
-            st.stop()
-
-        try:
-            with st.spinner("주변 장소를 찾고 있어요..."):
-                places = search_osm_places(
-                    lat, lon, radius, category, keyword
-                )
-
-            st.session_state["osm_search_result"] = {
-                "center": (lat, lon),
-                "radius": radius,
-                "places": places
+            params = {
+                "query": keyword.strip(),
+                "size": 15
             }
 
-        except Exception as exc:
-            st.error(f"장소 검색에 실패했어요: {exc}")
-            st.info(
-                "공개 지도 서버가 혼잡할 수 있어요. "
-                "잠시 후 다시 검색하거나 아래 지도 사이트를 이용해 주세요."
-            )
-
-    # 검색 전에도 입력 지역의 위치를 확인하면 지도 표시
-    result = st.session_state.get("osm_search_result")
-
-    st.markdown("### 🗺️ 주변 지도")
-
-    if result:
-        center_lat, center_lon = result["center"]
-        places = result["places"]
-
-        # OpenStreetMap 실제 지도
-        m = folium.Map(
-            location=[center_lat, center_lon],
-            zoom_start=14,
-            tiles="OpenStreetMap",
-            control_scale=True
-        )
-
-        folium.Circle(
-            location=[center_lat, center_lon],
-            radius=result["radius"],
-            color="#18BFA5",
-            fill=True,
-            fill_opacity=0.06
-        ).add_to(m)
-
-        folium.Marker(
-            [center_lat, center_lon],
-            popup="검색 중심 위치",
-            tooltip="검색 중심",
-            icon=folium.Icon(
-                color="blue",
-                icon="home"
-            )
-        ).add_to(m)
-
-        for i, place in enumerate(places, 1):
-            label = (
-                f"{i}. {place['name']} "
-                f"({place['distance']}km)"
-            )
-
-            folium.Marker(
-                [place["lat"], place["lon"]],
-                tooltip=label,
-                popup=folium.Popup(
-                    label,
-                    max_width=250
-                ),
-                icon=folium.Icon(
-                    color="green",
-                    icon="info-sign"
+            if search_mode == "📝 지역 직접 입력":
+                params["query"] = (
+                    f"{place_region.strip()} "
+                    f"{keyword.strip()}"
                 )
-            ).add_to(m)
 
-        # 기존 앱 안에 지도 삽입
-        components.html(
-            m.get_root().render(),
-            height=510,
-            scrolling=False
-        )
+            else:
+                params.update({
+                    "x": lon,
+                    "y": lat,
+                    "radius": radius,
+                    "sort": "distance"
+                })
 
-        st.caption(
-            "지도 데이터 © OpenStreetMap 기여자 · "
-            "핀을 누르면 장소 이름이 나와요."
-        )
+            try:
+                with st.spinner(
+                    "에이블이 장소를 찾는 중이에요..."
+                ):
 
-        st.markdown("### 💚 검색된 장소")
+                    response = requests.get(
+                        "https://dapi.kakao.com/v2/local/search/keyword.json",
+                        headers={
+                            "Authorization": f"KakaoAK {kakao_key}"
+                        },
+                        params=params,
+                        timeout=12
+                    )
 
-        if not places:
-            st.info(
-                "주변에서 일치하는 장소를 찾지 못했어요. "
-                "검색 반경을 넓혀보세요."
+                    response.raise_for_status()
+
+                    results = response.json().get(
+                        "documents", []
+                    )
+
+                st.session_state[
+                    "able_place_results"
+                ] = results
+
+                if results:
+                    st.success(
+                        f"장소 {len(results)}개를 찾았어요! 💚"
+                    )
+                else:
+                    st.info(
+                        "검색 결과가 없어요. 다른 검색어를 사용해 보세요."
+                    )
+
+            except requests.HTTPError as exc:
+                st.error(
+                    f"카카오 검색 오류: {exc}. "
+                    "API 키와 권한 설정을 확인해 주세요."
+                )
+
+            except requests.RequestException:
+                st.error(
+                    "검색 서버에 연결할 수 없어요."
+                )
+
+            except ValueError:
+                st.error(
+                    "검색 응답을 읽지 못했어요."
+                )
+
+    # 8. 검색 결과를 지도와 목록으로 표시
+    places = st.session_state.get(
+        "able_place_results", []
+    )
+
+    if places:
+
+        st.markdown("#### 🗺️ 검색된 장소 지도")
+
+        pins = []
+
+        for place in places:
+            try:
+                pins.append({
+                    "lat": float(place["y"]),
+                    "lon": float(place["x"])
+                })
+            except (
+                ValueError,
+                TypeError,
+                KeyError
+            ):
+                continue
+
+        if pins:
+            st.map(
+                pd.DataFrame(pins),
+                latitude="lat",
+                longitude="lon"
             )
 
-        for i, place in enumerate(places, 1):
+        st.markdown("#### 💚 장소 목록")
+
+        for i, place in enumerate(places):
+
             with st.container(border=True):
+
                 st.markdown(
-                    f"**{i}. {place['name']}**"
+                    f"**{i+1}. "
+                    f"{place.get('place_name', '이름 없음')}**"
                 )
 
-                st.write(
-                    f"📍 {place['address']}"
+                address = (
+                    place.get("road_address_name")
+                    or place.get("address_name")
+                    or "주소 정보 없음"
                 )
 
-                st.caption(
-                    f"중심 위치에서 약 "
-                    f"{place['distance']}km (직선거리)"
-                )
+                st.write("📍 " + address)
 
-                if place["phone"]:
+                if place.get("phone"):
                     st.caption(
                         "☎ " + place["phone"]
                     )
 
-                google_url = (
-                    "https://www.google.com/maps/search/"
-                    "?api=1&query="
-                    + quote(
-                        f"{place['name']} "
-                        f"{place['lat']},{place['lon']}"
+                if place.get("distance"):
+                    st.caption(
+                        "현재 위치에서 약 "
+                        + place["distance"]
+                        + "m (직선거리 기준)"
                     )
-                )
 
-                st.link_button(
-                    "🗺️ Google 지도에서 보기",
-                    google_url
-                )
+                url = place.get("place_url", "")
 
-    else:
-        st.info(
-            "지역이나 현재 위치를 선택하고 "
-            "장소 검색 버튼을 누르면 지도가 나타나요."
-        )
-
-        st.link_button(
-            "🌍 OpenStreetMap 직접 열기",
-            "https://www.openstreetmap.org/"
-        )
+                if (
+                    url.startswith("https://")
+                    or url.startswith("http://")
+                ):
+                    st.link_button(
+                        "카카오맵에서 자세히 보기 ↗",
+                        url
+                    )
 
     st.caption(
-        "별도의 지도 API 키가 필요하지 않습니다. "
-        "공개 지도 서비스의 검색 결과는 "
-        "실제 매장 정보와 다를 수 있습니다."
+        "현재 위치는 장소 검색 요청에만 사용하며 "
+        "별도로 영구 저장하지 않습니다."
     )
