@@ -273,22 +273,306 @@ def analyze_meeting(text, person):
             "decisions":out.get("decisions", []) if isinstance(out.get("decisions"), list) else [],
             "tasks":tasks}
 
+
+# ABLE_HOME_MASCOT_V1
+# 기존 다섯 가지 기능을 유지하는 새 홈 화면
+
+FEATURES = ['🫧 에이블과 대화', '🌷 나의 대시보드', '🎧 회의 분석', '💌 메일 비서', '🍀 메모 노트']
+HOME = "🏡 홈"
+
+if (
+    "active_menu" not in st.session_state
+    or st.session_state.active_menu not in [HOME] + FEATURES
+):
+    st.session_state.active_menu = HOME
+
+
+def go_to(target):
+    st.session_state.active_menu = target
+
+
+# 귀여운 민트 디자인 및 마스코트 애니메이션
+st.markdown("""
+<style>
+.able-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+.able-brand {
+    font-size: 1.35rem;
+    font-weight: 850;
+    color: #18574B;
+}
+.able-status {
+    font-size: .8rem;
+    color: #148F79;
+    background: #DFFFF5;
+    border-radius: 30px;
+    padding: 7px 12px;
+}
+.able-stage {
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    background: linear-gradient(
+        125deg, #71F0D7, #3FDDC5, #B7FFF1
+    );
+    border: 2px solid #B2FFF0;
+    border-radius: 28px;
+    padding: 22px 18px 25px;
+    box-shadow: 0 15px 35px rgba(46,198,175,.16);
+}
+.able-stage .eyebrow {
+    font-size: .77rem;
+    font-weight: 750;
+    color: #21695D;
+    letter-spacing: .1em;
+}
+.able-stage h1 {
+    font-size: 2rem;
+    color: #15564B;
+    margin: .3rem 0;
+}
+.able-stage p {
+    color: #225E53;
+    font-weight: 600;
+}
+.able-float {
+    display: block;
+    width: 80%;
+    max-width: 340px;
+    margin: 10px auto;
+    animation: floatAble 3.2s ease-in-out infinite;
+    filter: drop-shadow(
+        0 15px 8px rgba(13,110,96,.12)
+    );
+}
+@keyframes floatAble {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-11px);
+    }
+}
+.able-card-label {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #205B50;
+    margin: 22px 0 12px;
+}
+.able-home-hint {
+    text-align: center;
+    font-size: .85rem;
+    color: #5F837B;
+    margin-top: 12px;
+}
+@media (max-width: 650px) {
+    .able-stage {
+        padding: 15px 10px 18px;
+    }
+    .able-stage h1 {
+        font-size: 1.55rem;
+    }
+    .able-float {
+        max-width: 240px;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+# 사이드바는 간편 이동 메뉴로 유지
 with st.sidebar:
     st.title("🫧 ABLE DESK")
-    st.caption("YOUR EVERYDAY AI PARTNER")
-    menu = st.radio("메뉴", ["🫧 에이블과 대화", "🌷 나의 대시보드", "🎧 회의 분석", "💌 메일 비서", "🍀 메모 노트"], label_visibility="collapsed")
+    st.caption("MY CUTE AI ASSISTANT")
+
+    st.button(
+        "🏡 첫 화면",
+        use_container_width=True,
+        on_click=go_to,
+        args=(HOME,)
+    )
+
     st.divider()
-    voice_output = st.toggle("🔊 답변 음성으로 듣기", value=True)
-    st.caption("🟢 AI 사용 가능" if ai else "⚠️ API 키 설정 필요")
-    st.metric("저장된 대화", f"{len(st.session_state.turns)} / 10턴")
-    if st.button("대화 초기화", use_container_width=True):
+    st.caption("바로가기")
+
+    for label in FEATURES:
+        st.button(
+            label,
+            use_container_width=True,
+            key="side_" + label,
+            on_click=go_to,
+            args=(label,)
+        )
+
+    st.divider()
+
+    voice_output = st.toggle(
+        "🔊 답변 음성으로 듣기",
+        value=True
+    )
+
+    st.caption(
+        "🟢 AI 사용 가능"
+        if ai else "⚠️ API 키 설정 필요"
+    )
+
+    st.metric(
+        "저장된 대화",
+        f"{len(st.session_state.turns)} / 10턴"
+    )
+
+    if st.button(
+        "대화 초기화",
+        use_container_width=True
+    ):
         st.session_state.turns = []
         st.session_state.proposed = []
         st.rerun()
-    st.caption("일정·메모·대화는 현재 접속 세션에서만 유지됩니다.")
 
-st.markdown("""<div class="hero"><h1>ABLE DESK ✨</h1>
-<p>대화로 정리하고 · 일정으로 계획하고 · 메모로 남기는 AI 비서</p></div>""", unsafe_allow_html=True)
+    st.caption(
+        "일정·메모·대화는 현재 접속 세션에 저장됩니다."
+    )
+
+
+menu = st.session_state.active_menu
+
+# 새로운 홈 화면
+if menu == HOME:
+
+    st.markdown("""
+    <div class="able-top">
+        <div class="able-brand">✧ ABLE DESK</div>
+        <div class="able-status">● AI COMPANION</div>
+    </div>
+
+    <div class="able-stage">
+
+        <div class="eyebrow">
+            ✦ YOUR PERSONAL AI ASSISTANT ✦
+        </div>
+
+        <svg class="able-float"
+             viewBox="0 0 340 280"
+             xmlns="http://www.w3.org/2000/svg"
+             role="img"
+             aria-label="공중에 떠 있는 에이블 캐릭터">
+
+            <!-- 네온 링 -->
+            <ellipse cx="170" cy="53"
+                     rx="122" ry="23"
+                     fill="none"
+                     stroke="#DFFFF9"
+                     stroke-width="6"/>
+
+            <ellipse cx="170" cy="247"
+                     rx="123" ry="23"
+                     fill="none"
+                     stroke="#DFFFF9"
+                     stroke-width="6"/>
+
+            <!-- 캐릭터 몸통 -->
+            <path d="
+                M102 209
+                C100 146 115 90 163 85
+                C213 80 234 133 239 172
+                C252 159 269 151 278 162
+                C291 181 264 208 242 220
+                L239 232
+                Q213 244 191 229
+                Q170 244 149 230
+                Q121 242 102 228 Z"
+                fill="#FFFFFF"/>
+
+            <!-- 눈 -->
+            <ellipse cx="153" cy="163"
+                     rx="7" ry="9"
+                     fill="#36534D"/>
+
+            <path d="M198 162 Q211 149 223 162"
+                  fill="none"
+                  stroke="#36534D"
+                  stroke-width="7"
+                  stroke-linecap="round"/>
+
+            <!-- 웃는 입 -->
+            <path d="M171 185 Q189 205 208 185"
+                  fill="none"
+                  stroke="#36534D"
+                  stroke-width="7"
+                  stroke-linecap="round"/>
+
+            <!-- 볼터치 -->
+            <ellipse cx="130" cy="188"
+                     rx="17" ry="10"
+                     fill="#FFB6CA"/>
+
+            <ellipse cx="228" cy="186"
+                     rx="13" ry="9"
+                     fill="#FFB6CA"/>
+
+            <!-- 반짝임 -->
+            <path d="
+                M270 89 l7 15 15 7
+                -15 7 -7 15 -7 -15
+                -15 -7 15 -7z"
+                fill="#F0FFFC"/>
+
+            <circle cx="70" cy="152"
+                    r="6" fill="#F0FFFC"/>
+
+        </svg>
+
+        <h1>안녕! 나는 에이블이야 ✨</h1>
+
+        <p>
+            하고 싶은 일을 말해줘.
+            내가 같이 정리해줄게!
+        </p>
+
+    </div>
+
+    <div class="able-card-label">
+        오늘은 무엇을 도와줄까? 💚
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 실제 클릭 가능한 5개 기능 카드
+    left, right = st.columns(2, gap="small")
+
+    for i, label in enumerate(FEATURES):
+        with (left if i % 2 == 0 else right):
+            st.button(
+                label + "  ↗",
+                key="home_" + str(i),
+                use_container_width=True,
+                on_click=go_to,
+                args=(label,)
+            )
+
+    st.markdown(
+        '<div class="able-home-hint">'
+        '카드를 누르면 해당 기능으로 이동해요 🫧'
+        '</div>',
+        unsafe_allow_html=True
+    )
+
+else:
+    st.button(
+        "← 홈으로 돌아가기",
+        on_click=go_to,
+        args=(HOME,)
+    )
+
+    st.markdown(
+        '<div class="able-brand">✧ ABLE DESK</div>',
+        unsafe_allow_html=True
+    )
+
 
 if menu == "🫧 에이블과 대화":
     st.subheader("오늘 무엇을 도와드릴까요?")
